@@ -19,13 +19,15 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doReturn;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(MockitoJUnitRunner.class)
 @WebMvcTest(EmployeeController.class)
-@ContextConfiguration(classes = AppConfiguration.class)
+@ContextConfiguration(classes = {AppConfiguration.class})
 class EmployeeControllerTest {
     @Autowired
     private MockMvc mockMvc;
@@ -34,6 +36,7 @@ class EmployeeControllerTest {
     EmployeeServiceImpl employeeService;
 
     private static Employee employee;
+    private Long employee_id = 1L;
 
     @BeforeAll
     private static void setTestEmployeeEntity() {
@@ -46,11 +49,11 @@ class EmployeeControllerTest {
         List<Employee> allEmployees = Arrays.asList(employee);
         ObjectMapper mapper = new ObjectMapper();
         String jsonString = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(allEmployees);
-        given(employeeService.getAllEmployees()).willReturn(allEmployees);
+        doReturn(allEmployees).when(employeeService).getAllEmployees();
 
         mockMvc
                 .perform(
-                        get("/getAllEmployees")
+                        get("/employees")
                                 .content(jsonString)
                                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
@@ -63,7 +66,7 @@ class EmployeeControllerTest {
         given(employeeService.getEmployeeById(1L)).willReturn(employee);
         mockMvc
                 .perform(
-                        get("/getEmployee/{id}", 1L)
+                        get("/employees/{id}", 1L)
                                 .content(jsonString)
                                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
@@ -73,29 +76,31 @@ class EmployeeControllerTest {
     public void addEmployeeTest() throws Exception {
         ObjectMapper mapper = new ObjectMapper();
         String jsonString = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(employee);
+        given(employeeService.addEmployee(any(Employee.class))).willReturn(new Employee());
         mockMvc
                 .perform(
-                        post("/")
+                        post("/employees")
                                 .content(jsonString)
                                 .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
+                .andExpect(status().isCreated());
     }
 
     @Test
     public void deleteEmployeeTest() throws Exception {
         mockMvc
                 .perform(
-                        delete("/deleteEmployee/{id}", 1L))
-                .andExpect(status().isOk());
+                        delete("/employees/{id}", 1L))
+                .andExpect(status().isNoContent());
     }
 
     @Test
     public void updateEmployee() throws Exception {
         ObjectMapper mapper = new ObjectMapper();
         String jsonString = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(employee);
+        given(employeeService.updateEmployee(employee_id, employee)).willReturn(employee);
         mockMvc
                 .perform(
-                        put("/updateEmployee")
+                        put("/employees/{id}", 1L)
                                 .content(jsonString)
                                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());

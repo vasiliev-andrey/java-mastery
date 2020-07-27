@@ -1,13 +1,20 @@
 package com.mastery.java.task.dto;
 
+import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
+import javax.persistence.*;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 
+
+@Entity
+@Table(name = "employee")
+@ApiModel(description = "Employee model.")
 public class Employee {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "employee_id")
     @ApiModelProperty(
             value = "The unique Id of employee.",
             required = false,
@@ -16,55 +23,55 @@ public class Employee {
             hidden = false)
     private Long employee_id;
 
-    @NotNull(message = "Employee first name can't be null.")
-    @Size(max = 25, message = "Length field should not be greater 25 symbols.")
+    @Column(name = "first_name")
     @ApiModelProperty(
             value = "The employee's first name.",
             required = true,
             position = 2,
             example = "first_name",
             hidden = false)
+    @NotNull
     private String first_name;
 
-    @NotNull(message = "Employee last name can't be null.")
-    @Size(max = 25, message = "Length field should not be greater 25 symbols.")
+    @Column(name = "last_name")
     @ApiModelProperty(
             value = "The employee's last name.",
             required = true,
             position = 3,
             example = "last_name",
             hidden = false)
+    @NotNull
     private String last_name;
 
-    @NotNull(message = "Employee department id can't be null. Value between 0 and 300.")
-    @Min(0)
-    @Max(300)
+    @Column(name = "department_id")
     @ApiModelProperty(
             value = "The employee's department id.",
             required = true,
             position = 4,
             example = "100",
             hidden = false)
+    @NotNull
     private int department_id;
 
-    @NotNull(message = "Employee job title can't be null.")
-    @Size(max = 25, message = "Length field should not be greater 25 symbols.")
+    @Column(name = "job_title")
     @ApiModelProperty(
             value = "The employee's job title.",
             required = true,
             position = 5,
             example = "job title",
             hidden = false)
+    @NotNull
     private String job_title;
 
-    @NotNull(message = "Employee gender can't be null.")
-    @Size(max = 10, message = "Length field should not be greater 10 symbols.")
+    @Column(name = "gender")
     @ApiModelProperty(
             value = "The employee's gender.",
             required = true,
             position = 6,
             example = "MALE OR FEMALE",
             hidden = false)
+    @Enumerated(EnumType.STRING)
+    @NotNull
     private Gender gender;
 
     public Employee() {

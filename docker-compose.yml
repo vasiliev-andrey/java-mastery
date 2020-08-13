@@ -1,0 +1,23 @@
+version: '3.2'
+services:
+  activemq:
+    image: rmohr/activemq:latest
+    network_mode: bridge
+    container_name: activemq
+    environment:
+      - ACTIVEMQ_USERNAME=admin
+      - ACTIVEMQ_PASSWORD=admin
+    restart: unless-stopped
+  simplewebapp:
+    image: simplewebapp
+    network_mode: bridge
+    container_name: simplewebapp
+    expose:
+      - 8080
+    ports:
+      - 8080:8080
+    restart: unless-stopped
+    depends_on:
+      - activemq
+    links:
+      - activemq

@@ -1,66 +1,76 @@
 package com.mastery.java.task.service;
 
-import com.mastery.java.task.dao.JdbcTemplateEmployeeDaoImpl;
+import com.mastery.java.task.dao.EmployeeRepository;
 import com.mastery.java.task.dto.Employee;
+import com.mastery.java.task.exception.DataNotFoundException;
+import com.mastery.java.task.exception.EmployeeNotFoundException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
+@Transactional
 public class EmployeeServiceImpl implements EmployeeService {
 
-    @Autowired
-    JdbcTemplateEmployeeDaoImpl employeeDao;
+    private static final Logger log = LogManager.getLogger();
 
-    /**
-     * Add employee to database/
-     *
-     * @param employee - entity of Employee we need to add
-     */
+    @Autowired
+    private EmployeeRepository employeeRepository;
+
     @Override
-    public void addEmployee(Employee employee) {
-        employeeDao.addEmployee(employee);
+    public Employee addEmployee(Employee employee) {
+        return employeeRepository.saveAndFlush(employee);
     }
 
-    /**
-     * Get employee from database by Id/
-     *
-     * @param id - id number of requested Employee
-     * @return Employee entity from database
-     */
     @Override
     public Employee getEmployeeById(Long id) {
-        return employeeDao.getEmployeeById(id);
+        try {
+            log.debug("Getting employee by id...");
+            return employeeRepository.findById(id).get();
+        } catch (NoSuchElementException e) {
+            log.warn("Employee with id = " + id + " not found.");
+            throw new EmployeeNotFoundException(id);
+        }
     }
 
-    /**
-     * Get all employees from database/
-     *
-     * @return List of Employee from database
-     */
     @Override
     public List<Employee> getAllEmployees() {
-        return employeeDao.getAllEmployees();
+        log.debug("Getting all employees...");
+        List<Employee> employees = employeeRepository.findAll();
+        if (employees.isEmpty()) {
+            log.warn("Data not found.");
+            throw new DataNotFoundException();
+        }
+        return employees;
     }
 
-    /**
-     * Update employee in databse by Id.
-     *
-     * @param employee - entity of Employee we need to update
-     */
     @Override
-    public void updateEmployee(Employee employee) {
-        employeeDao.updateEmployee(employee);
+    public Employee updateEmployee(Long id, Employee employee) {
+        try {
+            log.debug("Updating employee by id...");
+            employeeRepository.findById(id).get();
+            employee.setEmployee_id(id);
+            return employeeRepository.saveAndFlush(employee);
+        } catch (NoSuchElementException e) {
+            log.warn("Employee with id = " + id + " not found.");
+            throw new EmployeeNotFoundException(id);
+        }
     }
 
-    /**
-     * Delete employee from database/
-     *
-     * @param id - id number of requested Employee
-     */
     @Override
     public void deleteEmployeeById(Long id) {
-        employeeDao.deleteEmployeeById(id);
+        log.debug("Deleting employee by id...");
+        if (employeeRepository.existsById(id)) {
+            log.debug("Employee deleted successfully.");
+            employeeRepository.deleteById(id);
+        } else {
+            log.warn("Employee with id = " + id + " not found.");
+            throw new EmployeeNotFoundException(id);
+        }
     }
 }
